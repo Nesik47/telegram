@@ -79,7 +79,7 @@ def can_send_message(user_id: int) -> bool:
     if result and result[0]:  
         try:
             last_message_time = datetime.strptime(result[0], "%Y-%m-%d %H:%M:%S")
-            if datetime.now() - last_message_time < timedelta(minutes=0.5):
+            if datetime.now() - last_message_time < timedelta(minutes=5):
                 return False  
         except ValueError:
             return True  
@@ -162,7 +162,7 @@ async def forward_message(message: Message):
         await bot.send_photo(CHAT_ID, message.photo[-1].file_id, caption=f"{user_info}\n📷 Надіслано фото")
     
     update_message_time(message.from_user.id)
-    await message.answer("✅ Ваше повідомлення надіслано!")
+    await message.answer("✅ Ваше повідомлення надіслано! Вдячні, що довіряєте нам🤝")
 
 # === Запуск бота ===
 async def main():

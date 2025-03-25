@@ -88,10 +88,41 @@ def update_message_time(user_id: int):
                        (user_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
         conn.commit()
 
-# === Обробка команди /start ===
+# === Команда /start ===
 @dp.message(Command("start"))
 async def start_command(message: Message):
-    await message.answer("👋 Вітаємо! Якщо стали свідками важливих подій, надсилайте їх нам.❗️Увага: анонімність гарантована. Якщо надсилаєте цікавий матеріал — дочекайтесь нашої відповіді і не відправляйте його іншим каналам.")
+    await message.answer("👋 Вітаємо! Якщо стали свідками важливих подій, надсилайте їх нам.❗️Анонімність гарантована.")
+
+# === Команда /ban для адміністраторів ===
+@dp.message(Command("ban"))
+async def ban_command(message: Message):
+    if message.from_user.id not in ADMIN_IDS:
+        await message.answer("❌ У вас немає прав для виконання цієї команди.")
+        return
+    
+    try:
+        args = message.text.split()
+        user_id = int(args[1])
+        days = int(args[2]) if len(args) > 2 else 0
+        ban_user(user_id, days)
+        await message.answer(f"✅ Користувач {user_id} заблокований на {days if days > 0 else 'безстроково'} днів.")
+    except (IndexError, ValueError):
+        await message.answer("⚠️ Використання: /ban <user_id> [дні]")
+
+# === Команда /unban для адміністраторів ===
+@dp.message(Command("unban"))
+async def unban_command(message: Message):
+    if message.from_user.id not in ADMIN_IDS:
+        await message.answer("❌ У вас немає прав для виконання цієї команди.")
+        return
+    
+    try:
+        args = message.text.split()
+        user_id = int(args[1])
+        unban_user(user_id)
+        await message.answer(f"✅ Користувач {user_id} розблокований.")
+    except (IndexError, ValueError):
+        await message.answer("⚠️ Використання: /unban <user_id>")
 
 # === Обробка повідомлень ===
 @dp.message()
@@ -108,8 +139,9 @@ async def forward_message(message: Message):
         return
     
     user_info = f"👤 Відправник: {message.from_user.full_name} (@{message.from_user.username})"
-    caption = f"{user_info}"
-    
+    user_id_info = f"🆔 User ID: {message.from_user.id}"
+    caption = f"{user_info}\n{user_id_info}"
+
     if message.text:
         await bot.send_message(CHAT_ID, f"{caption}\n✉️ {message.text}")
     
